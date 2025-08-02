@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Crypto Calculator</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Crypto Calculator</h1>
+
+        <!-- Cryptocurrency Selection -->
+        <div class="mb-4">
+            <label for="cryptoSelect" class="block text-gray-700 text-sm font-semibold mb-2">
+                Select Cryptocurrency:
+            </label>
+            <select id="cryptoSelect" class="shadow-sm border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="bitcoin">Bitcoin (BTC)</option>
+                <option value="ethereum">Ethereum (ETH)</option>
+                <option value="dogecoin">Dogecoin (DOGE)</option>
+                <option value="ripple">Ripple (XRP)</option>
+                <option value="litecoin">Litecoin (LTC)</option>
+                <option value="cardano">Cardano (ADA)</option>
+                <option value="polkadot">Polkadot (DOT)</option>
+                <option value="binancecoin">Binance Coin (BNB)</option>
+                <option value="solana">Solana (SOL)</option>
+                <option value="chainlink">Chainlink (LINK)</option>
+                <option value="uniswap">Uniswap (UNI)</option>
+                <option value="avalanche-2">Avalanche (AVAX)</option>
+                <option value="shiba-inu">Shiba Inu (SHIB)</option>
+                <option value="polygon">Polygon (MATIC)</option>
+                <option value="tron">TRON (TRX)</option>
+            </select>
+        </div>
+
+        <!-- Fiat Currency Selection -->
+        <div class="mb-6">
+            <label for="fiatSelect" class="block text-gray-700 text-sm font-semibold mb-2">
+                Select Fiat Currency:
+            </label>
+            <select id="fiatSelect" class="shadow-sm border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="usd">USD (US Dollar)</option>
+                <option value="eur">EUR (Euro)</option>
+                <option value="gbp">GBP (British Pound)</option>
+                <option value="jpy">JPY (Japanese Yen)</option>
+                <option value="aud">AUD (Australian Dollar)</option>
+                <option value="cad">CAD (Canadian Dollar)</option>
+                <option value="chf">CHF (Swiss Franc)</option>
+                <option value="cny">CNY (Chinese Yuan)</option>
+                <option value="inr">INR (Indian Rupee)</option>
+                <option value="brl">BRL (Brazilian Real)</option>
+                <option value="mxn">MXN (Mexican Peso)</option>
+                <option value="ruble">RUB (Russian Ruble)</option>
+                <option value="krw">KRW (South Korean Won)</option>
+                <option value="zar">ZAR (South African Rand)</option>
+                <option value="sek">SEK (Swedish Krona)</option>
+                <option value="dkk">DKK (Danish Krone)</option>
+                <option value="nzd">NZD (New Zealand Dollar)</option>
+                <option value="sgd">SGD (Singapore Dollar)</option>
+                <option value="myr">MYR (Malaysian Ringgit)</option>
+                <option value="aed">AED (United Arab Emirates Dirham)</option>
+                <option value="hkd">HKD (Hong Kong Dollar)</option>
+                <option value="try">TRY (Turkish Lira)</option>
+            </select>
+        </div>
+
+        <!-- Current Price Display -->
+        <div class="mb-6 text-center">
+            <p class="text-lg text-gray-600">Current Price:</p>
+            <p id="currentPrice" class="text-4xl font-extrabold text-green-600 mt-2">Loading...</p>
+        </div>
+
+        <!-- Amount Input -->
+        <div class="mb-6">
+            <label for="amountInput" class="block text-gray-700 text-sm font-semibold mb-2">
+                Enter Amount:
+            </label>
+            <input
+                type="number"
+                id="amountInput"
+                class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g., 0.5"
+                step="any"
+                min="0"
+            >
+        </div>
+
+        <!-- Calculate Button -->
+        <div class="mb-6">
+            <button
+                id="calculateBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg w-full"
+            >
+                Calculate Value
+            </button>
+        </div>
+
+        <!-- Result Display -->
+        <div class="text-center">
+            <p class="text-lg text-gray-600">Calculated Value:</p>
+            <p id="calculatedValue" class="text-4xl font-extrabold text-blue-600 mt-2">$0.00</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const cryptoSelect = document.getElementById('cryptoSelect');
+            const fiatSelect = document.getElementById('fiatSelect');
+            const currentPrice = document.getElementById('currentPrice');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const amountInput = document.getElementById('amountInput');
+            const calculatedValue = document.getElementById('calculatedValue');
+
+            let cryptoData = {};
+
+            // Function to format numbers with dynamic decimals based on magnitude
+            function formatNumber(value) {
+                if (value < 0.01) {
+                    return value.toFixed(6);  // Show 6 decimals for very small numbers
+                } else {
+                    return value.toFixed(2);  // Show 2 decimals for larger numbers
+                }
+            }
+
+            // Fetch the current price of the selected cryptocurrency
+            function fetchCryptoPrice() {
+                const cryptoSymbol = cryptoSelect.value;
+                const fiatSymbol = fiatSelect.value;
+
+                fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cryptoSymbol}&vs_currencies=${fiatSymbol}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        cryptoData = data;
+                        const price = cryptoData[cryptoSymbol][fiatSymbol];
+                        currentPrice.textContent = `${fiatSymbol.toUpperCase()} ${formatNumber(price)}`;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                    });
+            }
+
+            // Calculate the value based on the selected cryptocurrency and fiat
+            calculateBtn.addEventListener('click', function() {
+                const amount = parseFloat(amountInput.value);
+                if (isNaN(amount) || amount <= 0) {
+                    alert("Please enter a valid positive number.");
+                    return;
+                }
+
+                const cryptoSymbol = cryptoSelect.value;
+                const fiatSymbol = fiatSelect.value;
+                const price = cryptoData[cryptoSymbol][fiatSymbol];
+                const result = amount * price;
+
+                calculatedValue.textContent = `${fiatSymbol.toUpperCase()} ${formatNumber(result)}`;
+            });
+
+            // Fetch price when the user changes cryptocurrency or fiat currency
+            cryptoSelect.addEventListener('change', fetchCryptoPrice);
+            fiatSelect.addEventListener('change', fetchCryptoPrice);
+
+            // Initial price fetch
+            fetchCryptoPrice();
+        });
+    </script>
+</body>
+</html>
